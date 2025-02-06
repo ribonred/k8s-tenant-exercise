@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-app
+  labels:
+    app: {{ .Release.Name }}-app
+spec:
+  replicas: {{ .Values.backendApp.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-app
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-app
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.backendApp.image }}
+          env:
+            - name: POSTGRES_HOST
+              value: "{{ .Release.Name }}-postgresql-hl"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: "{{ .Values.db.username }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.db.password }}"
+            - name: POSTGRES_NAME
+              value: "{{ .Values.db.database }}"
+          ports:
+            - containerPort: {{ .Values.backendApp.port }}

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: tenant-stack
+description: A chart that deploys a tenant stack and PostgreSQL from Bitnami.
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies:
+- name: postgresql
+  version: 16.4.6 # Specify the version you want
+  repository: "https://charts.bitnami.com/bitnami"
