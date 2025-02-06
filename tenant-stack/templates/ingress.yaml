@@ -2,9 +2,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-ingress
-  annotations:
-    kubernetes.io/ingress.class: "nginx"  # Adjust if you use another ingress controller
 spec:
+  ingressClassName: "nginx"  # Adjust if you use another ingress controller
   rules:
     - host: "{{ .Values.domain }}"
       http:
