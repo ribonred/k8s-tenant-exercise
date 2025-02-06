@@ -1,0 +1,29 @@
+# tenant-crd.yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tenants.saas.com
+spec:
+  group: saas.com
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              tenantName:
+                type: string
+              subdomain:
+                type: string
+  scope: Namespaced
+  names:
+    plural: tenants
+    singular: tenant
+    kind: Tenant
+    shortNames:
+    - tenant
