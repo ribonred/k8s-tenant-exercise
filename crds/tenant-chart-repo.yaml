@@ -12,12 +12,12 @@ spec:
     # exclude all
     /*
     # include charts directory
-    !/tenant-stack/
+    !/charts/
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: postgresql
+  name: postgresql-charts
   namespace: flux-system
 spec:
   interval: 1m
