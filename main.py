@@ -1,16 +1,23 @@
 # myapp/k8s.py
 from kubernetes import client, config
 import logging
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices
 import json
 
 
 class Tenant(BaseModel):
     tenantName: str
+    dbVolumeSize: str = Field(
+        validation_alias=AliasChoices("db_volume_size", "dbVolumeSize")
+    )
+    namespace: str = Field(
+        validation_alias=AliasChoices("tenantNamespace", "tenant_namespace")
+    )
+    config: dict | None = Field(
+        validation_alias=AliasChoices("configMapReference", "config_map_reference"),
+        default=None,
+    )
     domain: str
-    dbVolumeSize: str
-    namespace: str = Field(alias="tenantNamespace")
-    config: dict | None = Field(alias="configMapReference", default=None)
 
     def get_config_ref(self) -> dict:
         if self.config is None:
@@ -114,7 +121,7 @@ def create_helmrelease_cr(tenant: Tenant):
         },
         "spec": {
             "releaseName": f"{tenant.tenantName}",
-            "interval": "10m",
+            "interval": "1m",
             "timeout": "5m",
             "chart": {
                 "spec": {
@@ -179,10 +186,70 @@ def delete_tenant_ns(tenant: Tenant):
         logger.error("Error deleting namespace '%s': %s", tenant.namespace, e)
 
 
-# tenant = Tenant(
-#     tenantName="mytenant",
-#     domain="mytenant.localhost",
-#     dbVolumeSize="1Gi",
-#     namespace="mytenant",
-# )
-# create_helmrelease_cr(tenant)
+def update_tenant_release(tenant: Tenant):
+    # Load Kubernetes configuration.
+    try:
+        config.load_incluster_config()
+    except Exception:
+        config.load_kube_config()
+
+    # Create a custom objects API client.
+    custom_api = client.CustomObjectsApi()
+
+    # These values should match your Helm Operator's CRD.
+    group = "helm.toolkit.fluxcd.io"  # adjust if your operator uses a different group
+    version = "v2"
+    # Build the HelmRelease custom resource.
+    tenant_db_detail = TenantDbDetail()
+    tenant_db = TenantDbSetup(
+        db=tenant_db_detail,
+        postgresql=PostgresConfig(
+            auth=TenantPostgresAuth.from_tenant_db(tenant_db_detail),
+            primary=TenantDbPersistence(size=tenant.dbVolumeSize),
+        ),
+    )
+    release_name = f"{tenant.tenantName}-release"
+
+    values = {
+        **tenant_db.model_dump(),
+        "backendApp": {
+            "image": "car-finance:latest",
+            "replicaCount": 1,
+            "port": 8000,
+        },
+        "tenantIngress": {
+            "domain": tenant.domain  # used by the chart's ingress template
+        },
+    }
+    if tenant.get_config_ref():
+        values["backendApp"].update(tenant.get_config_ref())
+    try:
+        # Fetch the existing HelmRelease
+        existing_helmrelease = custom_api.get_namespaced_custom_object(
+            group=group,
+            version=version,
+            namespace=tenant.namespace,
+            plural="helmreleases",
+            name=release_name,
+        )
+
+        # Keep metadata, but update `spec`
+        existing_helmrelease["spec"]["values"] = values
+
+        # Update the HelmRelease with the new values
+        updated_helmrelease = custom_api.replace_namespaced_custom_object(
+            group=group,
+            version=version,
+            namespace=tenant.namespace,
+            plural="helmreleases",
+            name=release_name,
+            body=existing_helmrelease,
+        )
+
+        logger.info("HelmRelease CR updated for tenant '%s'", tenant.domain)
+        return updated_helmrelease
+
+    except client.rest.ApiException as e:
+        logger.error(
+            "Error updating HelmRelease CR for tenant '%s': %s", tenant.domain, e
+        )

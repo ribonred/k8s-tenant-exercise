@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "django-json-widget>=2.0.1",
     "django>=5.1.6",
     "kopf>=1.37.4",
     "kubernetes>=32.0.0",

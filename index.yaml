@@ -3,20 +3,20 @@ entries:
   tenant-stack:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-09T04:13:21.604034+07:00"
+    created: "2025-02-09T06:36:48.5901193+07:00"
     dependencies:
     - name: postgresql
       repository: https://charts.bitnami.com/bitnami
       version: 16.4.6
     description: A chart that deploys a tenant stack and PostgreSQL from Bitnami.
-    digest: 38406b2badc9960c0a360fc839b2eec7130cbc1ff47f7e2d623101d7d83b9005
+    digest: 66ccc505075835f3437726025152ab938fae69d126f0ba7763009fbc2a2cb661
     name: tenant-stack
     urls:
     - chart-release/tenant-stack-1.0.1.tgz
     version: 1.0.1
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-09T04:13:21.6003467+07:00"
+    created: "2025-02-09T06:36:48.5853012+07:00"
     dependencies:
     - name: postgresql
       repository: https://charts.bitnami.com/bitnami
@@ -29,7 +29,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-09T04:13:21.5961471+07:00"
+    created: "2025-02-09T06:36:48.5777787+07:00"
     dependencies:
     - name: postgresql
       repository: https://charts.bitnami.com/bitnami
@@ -42,7 +42,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-09T04:13:21.5924736+07:00"
+    created: "2025-02-09T06:36:48.5697515+07:00"
     dependencies:
     - name: postgresql
       repository: https://charts.bitnami.com/bitnami
@@ -55,7 +55,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-09T04:13:21.5882556+07:00"
+    created: "2025-02-09T06:36:48.5612597+07:00"
     dependencies:
     - name: postgresql
       repository: https://charts.bitnami.com/bitnami
@@ -68,7 +68,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-09T04:13:21.5845819+07:00"
+    created: "2025-02-09T06:36:48.5529742+07:00"
     dependencies:
     - name: postgresql
       repository: https://charts.bitnami.com/bitnami
@@ -79,4 +79,4 @@ entries:
     urls:
     - chart-release/tenant-stack-0.1.3.tgz
     version: 0.1.3
-generated: "2025-02-09T04:13:21.5798673+07:00"
+generated: "2025-02-09T06:36:48.5414498+07:00"

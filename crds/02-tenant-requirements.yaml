@@ -14,3 +14,8 @@ metadata:
 spec:
   interval: 1m
   url: https://charts.bitnami.com/bitnami
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-system
