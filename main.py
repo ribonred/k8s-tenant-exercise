@@ -2,7 +2,7 @@
 from kubernetes import client, config
 import logging
 from pydantic import BaseModel, Field
-
+import json
 
 class Tenant(BaseModel):
     tenantName: str
@@ -113,7 +113,7 @@ def create_helmrelease_cr(tenant: Tenant):
             "chart": {
                 "spec": {
                     "chart": "tenant-stack",  # Name of your Helm chart
-                    "version": "0.1.5",
+                    "version": "0.1.6",
                     "sourceRef": {
                         "kind": "HelmRepository",  # This must match your repository CRD kind
                         "name": "tenant-charts",  # Name of the HelmRepository containing your chart
@@ -136,6 +136,7 @@ def create_helmrelease_cr(tenant: Tenant):
     }
     if tenant.get_config_ref():
         helmrelease_cr["spec"]["values"]["backendApp"].update(tenant.get_config_ref())
+    print(json.dumps(helmrelease_cr, indent=2))
 
     try:
         custom_api.create_namespaced_custom_object(

@@ -4,9 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.backendApp.configMapReference.refName }}
 data:
-{{- range $key, $value := .Values.backendApp.configMapReference }}
-  {{- if ne $key "refName" }}
+{{- range $key, $value := .Values.backendApp.configMapReference.values }}
   {{ $key }}: {{ $value | quote }}
-  {{- end }}
 {{- end }}
 {{- end }}

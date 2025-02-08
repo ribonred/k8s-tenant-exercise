@@ -11,6 +11,11 @@ backendApp:
   image: car-finance:latest
   replicaCount: 1
   port: 8000
+  # configMapReference:
+  #   refName: default-tenant-config
+  #   values:
+  #     DJANGO_SETTINGS_MODULE: config.settings.development
+
 postgresql:
   architecture: standalone
   auth:
