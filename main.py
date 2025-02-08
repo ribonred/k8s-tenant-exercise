@@ -103,7 +103,7 @@ def create_helmrelease_cr(tenant : Tenant):
             "chart": {
                 "spec": {
                     "chart": "tenant-stack",   # Name of your Helm chart
-                    "version": "0.1.1",          # Version of your chart
+                    "version": "0.1.2",          # Version of your chart
                     "sourceRef": {
                         "kind": "GitRepository",  # This must match your repository CRD kind
                         "name": "tenant-charts",   # Name of the HelmRepository containing your chart
