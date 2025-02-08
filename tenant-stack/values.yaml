@@ -1,37 +1,8 @@
-architecture: standalone
 db:
   username: default_tenant_user
   password: default_tenant_password
   database: default_tenant
   storage: 1Gi
-
-auth:
-  username: default_tenant_user
-  password: default_tenant_password
-  database: default_tenant
-  enablePostgresUser: true
-  postgresPassword: postgres
-
-primary:
-  persistence:
-    enabled: true
-    existingClaim: "pg-storage"
-    size: 1Gi
-
-resources:
-  requests:
-    memory: 1Gi
-    cpu: 1000m
-  limits:
-    memory: 4Gi
-    cpu: 4000m
-# postgres metrics
-metrics:
-  enabled: true
-  readinessProbe:
-    initialDelaySeconds: 30
-    timeoutSeconds: 5
-    enabled: true
 
 tenantIngress:
   domain: "defaulttenant.com"
@@ -40,3 +11,32 @@ backendApp:
   image: car-finance:latest
   replicaCount: 1
   port: 8000
+postgresql:
+  architecture: standalone
+  auth:
+    username: default_tenant_user
+    password: default_tenant_password
+    database: default_tenant
+    enablePostgresUser: true
+    postgresPassword: postgres
+
+  primary:
+    persistence:
+      enabled: true
+      existingClaim: "pg-storage"
+      size: 1Gi
+
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 1000m
+    limits:
+      memory: 4Gi
+      cpu: 4000m
+  # postgres metrics
+  metrics:
+    enabled: true
+    readinessProbe:
+      initialDelaySeconds: 30
+      timeoutSeconds: 5
+      enabled: true

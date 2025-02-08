@@ -1,18 +1,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
+kind: HelmRepository
 metadata:
   name: tenant-charts
   namespace: flux-system
 spec:
-  interval: 1m
-  url: https://github.com/ribonred/k8s-tenant-exercise
-  ref:
-    branch: master
-  ignore: |
-    # exclude all
-    /*
-    # include charts directory
-    !/charts/
+  url: "https://ribonred.github.io/k8s-tenant-exercise"
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository

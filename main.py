@@ -3,17 +3,20 @@ from kubernetes import client, config
 import logging
 from pydantic import BaseModel
 
+
 class Tenant(BaseModel):
     tenantName: str
     domain: str
     dbVolumeSize: str
     namespace: str
 
+
 class TenantDbDetail(BaseModel):
     username: str = "default_tenant_user"
     password: str = "default_tenant_password"
     database: str = "default_tenant"
     storage: str = "1Gi"
+
 
 class TenantPostgresAuth(TenantDbDetail):
     enablePostgresUser: bool = True
@@ -25,8 +28,9 @@ class TenantPostgresAuth(TenantDbDetail):
             username=tenant_db.username,
             password=tenant_db.password,
             database=tenant_db.database,
-            storage=tenant_db.storage
+            storage=tenant_db.storage,
         )
+
 
 class TenantDbPersistence(BaseModel):
     enabled: bool = True
@@ -34,22 +38,20 @@ class TenantDbPersistence(BaseModel):
     size: str
 
     def model_dump(self, *args, **kwargs):
-        dumped: dict =  super().model_dump(*args, **kwargs)
-        return dict(
-            persistence=dumped
-        )
+        dumped: dict = super().model_dump(*args, **kwargs)
+        return dict(persistence=dumped)
+
 
 class TenantDbSetup(BaseModel):
-    db : TenantDbDetail
+    db: TenantDbDetail
     auth: TenantPostgresAuth
     primary: TenantDbPersistence
 
 
-
-
 logger = logging.getLogger(__name__)
 
-def create_helmrelease_cr(tenant : Tenant):
+
+def create_helmrelease_cr(tenant: Tenant):
     """
     Create a HelmRelease custom resource for the given tenant.
     This CR will instruct the Helm Operator to deploy the tenant stack.
@@ -65,9 +67,7 @@ def create_helmrelease_cr(tenant : Tenant):
     k8s_client = client.CoreV1Api()
     print("Creating namespace for tenant")
     k8s_client.create_namespace(
-        body=client.V1Namespace(
-            metadata=client.V1ObjectMeta(name=tenant.namespace)
-        )
+        body=client.V1Namespace(metadata=client.V1ObjectMeta(name=tenant.namespace))
     )
     k8s_client.create_namespaced_persistent_volume_claim(
         namespace=tenant.namespace,
@@ -75,21 +75,23 @@ def create_helmrelease_cr(tenant : Tenant):
             metadata=client.V1ObjectMeta(name="pg-storage"),
             spec=client.V1PersistentVolumeClaimSpec(
                 access_modes=["ReadWriteOnce"],
-                resources=client.V1ResourceRequirements(requests={"storage": tenant.dbVolumeSize})
-            )
-        )
+                resources=client.V1ResourceRequirements(
+                    requests={"storage": tenant.dbVolumeSize}
+                ),
+            ),
+        ),
     )
     print(f"Namespace {tenant.namespace} created")
 
     # These values should match your Helm Operator's CRD.
-    group = "helm.toolkit.fluxcd.io/v2"  # adjust if your operator uses a different group
-    version = "v1"
+    group = "helm.toolkit.fluxcd.io"  # adjust if your operator uses a different group
+    version = "v2"
     # Build the HelmRelease custom resource.
     tenant_db_detail = TenantDbDetail()
     tenant_db = TenantDbSetup(
         db=tenant_db_detail,
         auth=TenantPostgresAuth.from_tenant_db(tenant_db_detail),
-        primary=TenantDbPersistence(size=tenant.dbVolumeSize)
+        primary=TenantDbPersistence(size=tenant.dbVolumeSize),
     )
     helmrelease_cr = {
         "apiVersion": f"{group}/{version}",
@@ -100,14 +102,16 @@ def create_helmrelease_cr(tenant : Tenant):
         },
         "spec": {
             "releaseName": f"{tenant.tenantName}",
+            "interval": "10m",
+            "timeout": "5m",
             "chart": {
                 "spec": {
-                    "chart": "tenant-stack",   # Name of your Helm chart
-                    "version": "0.1.2",          # Version of your chart
+                    "chart": "tenant-stack",  # Name of your Helm chart
+                    "version": "0.1.2",
                     "sourceRef": {
-                        "kind": "GitRepository",  # This must match your repository CRD kind
-                        "name": "tenant-charts",   # Name of the HelmRepository containing your chart
-                        "namespace": "flux-system"     # Namespace where the HelmRepository exists
+                        "kind": "HelmRepository",  # This must match your repository CRD kind
+                        "name": "tenant-charts",  # Name of the HelmRepository containing your chart
+                        "namespace": "flux-system",  # Namespace where the HelmRepository exists
                     },
                 }
             },
@@ -120,9 +124,9 @@ def create_helmrelease_cr(tenant : Tenant):
                 },
                 "tenantIngress": {
                     "domain": tenant.domain  # used by the chart's ingress template
-                }
-            }
-        }
+                },
+            },
+        },
     }
 
     try:
@@ -135,7 +139,9 @@ def create_helmrelease_cr(tenant : Tenant):
         )
         logger.info("HelmRelease CR created for tenant '%s'", tenant.domain)
     except client.rest.ApiException as e:
-        logger.error("Error creating HelmRelease CR for tenant '%s': %s", tenant.domain, e)
+        logger.error(
+            "Error creating HelmRelease CR for tenant '%s': %s", tenant.domain, e
+        )
         k8s_client.delete_namespace(name=tenant.namespace)
 
 
@@ -143,6 +149,6 @@ tenant = Tenant(
     tenantName="mytenant",
     domain="mytenant.example.com",
     dbVolumeSize="1Gi",
-    namespace="mytenant"
+    namespace="mytenant",
 )
 create_helmrelease_cr(tenant)
