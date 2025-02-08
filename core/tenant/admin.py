@@ -103,7 +103,6 @@ class TenantAdmin(admin.ModelAdmin):
                     body=existing_tenant_config,
                 )
                 logger.info("Tenant CR updated for tenant '%s'", obj.name)
-                print(existing_tenant_config)
             except client.rest.ApiException as e:
                 print(e)
                 logger.error(
