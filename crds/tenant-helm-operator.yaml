@@ -1,6 +1,0 @@
-apiVersion: helm.operator-sdk/v1
-kind: HelmRepository
-metadata:
-  name: tenant-charts
-spec:
-  url: "https://my-chart-repo.example.com"

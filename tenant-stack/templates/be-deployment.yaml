@@ -15,8 +15,9 @@ spec:
         app: {{ .Release.Name }}-app
     spec:
       containers:
-        - name: app
+        - name: backend-app
           image: {{ .Values.backendApp.image }}
+          imagePullPolicy: Never
           env:
             - name: POSTGRES_HOST
               value: "{{ .Release.Name }}-postgresql-hl"
@@ -30,3 +31,4 @@ spec:
               value: "{{ .Values.db.database }}"
           ports:
             - containerPort: {{ .Values.backendApp.port }}
+      

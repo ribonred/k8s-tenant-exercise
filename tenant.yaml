@@ -1,0 +1,8 @@
+apiVersion: saas.com/v1
+kind: Tenant
+metadata:
+  name: sdn-banjararum
+spec:
+  tenantName: sdn-banjararum
+  domain: sdn-banjararum.com
+  dbVolumeSize: 1Gi

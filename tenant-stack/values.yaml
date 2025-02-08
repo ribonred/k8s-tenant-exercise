@@ -1,5 +1,3 @@
-tenantName: ""
-subdomain: ""
 architecture: standalone
 db:
   username: default_tenant_user
