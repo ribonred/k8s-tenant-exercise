@@ -14,7 +14,8 @@ spec:
       labels:
         app: {{ .Release.Name }}-app
     spec:
-      - name: init-wait-for-postgres
+      initContainers:
+        - name: init-wait-for-postgres
           image: postgres:13  # Use PostgreSQL image to get `pg_isready`
           command:
             - /bin/sh
@@ -35,7 +36,6 @@ spec:
               value: "{{ .Values.db.username }}"
             - name: POSTGRES_PASSWORD
               value: "{{ .Values.db.password }}"
-
       containers:
         - name: backend-app
           command: ["./script/entrypoint.sh"]
