@@ -24,7 +24,7 @@ spec:
                 type: string
               tenantNamespace:
                 type: string
-              ConfigMapReference:
+              configMapReference:
                 type: object
                 required: [ "refName" ] # Ensure refName is always present
                 properties:

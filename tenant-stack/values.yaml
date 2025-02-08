@@ -2,7 +2,6 @@ db:
   username: default_tenant_user
   password: default_tenant_password
   database: default_tenant
-  storage: 1Gi
 
 tenantIngress:
   domain: "defaulttenant.com"
@@ -11,10 +10,10 @@ backendApp:
   image: car-finance:latest
   replicaCount: 1
   port: 8000
-  # configMapReference:
-  #   refName: default-tenant-config
-  #   values:
-  #     DJANGO_SETTINGS_MODULE: config.settings.development
+  configMapReference:
+    refName: sdn-banjararum-config
+    values:
+      DJANGO_SETTINGS_MODULE: config.settings.development
 
 postgresql:
   architecture: standalone

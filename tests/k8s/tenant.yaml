@@ -6,9 +6,10 @@ metadata:
 spec:
   tenantName: sdn-banjararum
   domain: sdn-banjararum.localhost
-  dbVolumeSize: 1Gi
+  dbVolumeSize: 2Gi
   tenantNamespace: sdn-banjararum
-  ConfigMapReference:
+  configMapReference:
     refName: sdn-banjararum-config
     values:
       DJANGO_SETTINGS_MODULE: config.settings.development
+      DBENGINE: postgres

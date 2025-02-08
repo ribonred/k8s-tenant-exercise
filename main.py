@@ -4,24 +4,24 @@ import logging
 from pydantic import BaseModel, Field
 import json
 
+
 class Tenant(BaseModel):
     tenantName: str
     domain: str
     dbVolumeSize: str
     namespace: str = Field(alias="tenantNamespace")
-    config: dict | None = Field(alias="ConfigMapReference", default=None)
+    config: dict | None = Field(alias="configMapReference", default=None)
 
     def get_config_ref(self) -> dict:
         if self.config is None:
             return {}
-        return {"ConfigMapReference": self.config}
+        return {"configMapReference": self.config}
 
 
 class TenantDbDetail(BaseModel):
-    username: str = "default_tenant_user"
-    password: str = "default_tenant_password"
+    username: str = "banjar_tenant"
+    password: str = "banjar_tenant_password"
     database: str = "default_tenant"
-    storage: str = "1Gi"
 
 
 class TenantPostgresAuth(TenantDbDetail):
@@ -34,7 +34,6 @@ class TenantPostgresAuth(TenantDbDetail):
             username=tenant_db.username,
             password=tenant_db.password,
             database=tenant_db.database,
-            storage=tenant_db.storage,
         )
 
 
@@ -48,10 +47,15 @@ class TenantDbPersistence(BaseModel):
         return dict(persistence=dumped)
 
 
-class TenantDbSetup(BaseModel):
-    db: TenantDbDetail
+class PostgresConfig(BaseModel):
+    architecture: str = "standalone"
     auth: TenantPostgresAuth
     primary: TenantDbPersistence
+
+
+class TenantDbSetup(BaseModel):
+    db: TenantDbDetail
+    postgresql: PostgresConfig
 
 
 logger = logging.getLogger(__name__)
@@ -96,8 +100,10 @@ def create_helmrelease_cr(tenant: Tenant):
     tenant_db_detail = TenantDbDetail()
     tenant_db = TenantDbSetup(
         db=tenant_db_detail,
-        auth=TenantPostgresAuth.from_tenant_db(tenant_db_detail),
-        primary=TenantDbPersistence(size=tenant.dbVolumeSize),
+        postgresql=PostgresConfig(
+            auth=TenantPostgresAuth.from_tenant_db(tenant_db_detail),
+            primary=TenantDbPersistence(size=tenant.dbVolumeSize),
+        ),
     )
     helmrelease_cr = {
         "apiVersion": f"{group}/{version}",
@@ -113,7 +119,7 @@ def create_helmrelease_cr(tenant: Tenant):
             "chart": {
                 "spec": {
                     "chart": "tenant-stack",  # Name of your Helm chart
-                    "version": "0.1.6",
+                    "version": "1.0.0",
                     "sourceRef": {
                         "kind": "HelmRepository",  # This must match your repository CRD kind
                         "name": "tenant-charts",  # Name of the HelmRepository containing your chart
@@ -153,6 +159,7 @@ def create_helmrelease_cr(tenant: Tenant):
         )
         k8s_client.delete_namespace(name=tenant.namespace)
 
+
 def delete_tenant_ns(tenant: Tenant):
     """
     Delete the namespace for the given tenant.
@@ -170,6 +177,7 @@ def delete_tenant_ns(tenant: Tenant):
         logger.info("Namespace '%s' deleted", tenant.namespace)
     except client.rest.ApiException as e:
         logger.error("Error deleting namespace '%s': %s", tenant.namespace, e)
+
 
 # tenant = Tenant(
 #     tenantName="mytenant",
