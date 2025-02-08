@@ -16,6 +16,7 @@ spec:
     spec:
       containers:
         - name: backend-app
+          command: ["./script/entrypoint.sh"]
           image: {{ .Values.backendApp.image }}
           imagePullPolicy: Never
           env:
