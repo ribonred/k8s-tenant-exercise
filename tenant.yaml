@@ -2,7 +2,13 @@ apiVersion: saas.com/v1
 kind: Tenant
 metadata:
   name: sdn-banjararum
+  namespace: tenant-system
 spec:
   tenantName: sdn-banjararum
-  domain: sdn-banjararum.com
+  domain: sdn-banjararum.localhost
   dbVolumeSize: 1Gi
+  tenantNamespace: sdn-banjararum
+  ConfigMapReference:
+    refName: sdn-banjararum-config
+    values:
+      DJANGO_SETTINGS_MODULE: config.settings.development

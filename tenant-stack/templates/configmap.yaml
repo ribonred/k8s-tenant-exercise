@@ -1,0 +1,12 @@
+{{- if .Values.backendApp.configMapReference }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.backendApp.configMapReference.refName }}
+data:
+{{- range $key, $value := .Values.backendApp.configMapReference }}
+  {{- if ne $key "refName" }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

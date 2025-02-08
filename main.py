@@ -1,14 +1,20 @@
 # myapp/k8s.py
 from kubernetes import client, config
 import logging
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Tenant(BaseModel):
     tenantName: str
     domain: str
     dbVolumeSize: str
-    namespace: str
+    namespace: str = Field(alias="tenantNamespace")
+    config: dict | None = Field(alias="ConfigMapReference", default=None)
+
+    def get_config_ref(self) -> dict:
+        if self.config is None:
+            return {}
+        return {"ConfigMapReference": self.config}
 
 
 class TenantDbDetail(BaseModel):
@@ -128,6 +134,8 @@ def create_helmrelease_cr(tenant: Tenant):
             },
         },
     }
+    if tenant.get_config_ref():
+        helmrelease_cr["spec"]["values"]["backendApp"].update(tenant.get_config_ref())
 
     try:
         custom_api.create_namespaced_custom_object(
@@ -144,11 +152,28 @@ def create_helmrelease_cr(tenant: Tenant):
         )
         k8s_client.delete_namespace(name=tenant.namespace)
 
+def delete_tenant_ns(tenant: Tenant):
+    """
+    Delete the namespace for the given tenant.
+    """
+    # Load Kubernetes configuration.
+    try:
+        config.load_incluster_config()
+    except Exception:
+        config.load_kube_config()
 
-tenant = Tenant(
-    tenantName="mytenant",
-    domain="mytenant.localhost",
-    dbVolumeSize="1Gi",
-    namespace="mytenant",
-)
-create_helmrelease_cr(tenant)
+    # Create a custom objects API client.
+    k8s_client = client.CoreV1Api()
+    try:
+        k8s_client.delete_namespace(name=tenant.namespace)
+        logger.info("Namespace '%s' deleted", tenant.namespace)
+    except client.rest.ApiException as e:
+        logger.error("Error deleting namespace '%s': %s", tenant.namespace, e)
+
+# tenant = Tenant(
+#     tenantName="mytenant",
+#     domain="mytenant.localhost",
+#     dbVolumeSize="1Gi",
+#     namespace="mytenant",
+# )
+# create_helmrelease_cr(tenant)

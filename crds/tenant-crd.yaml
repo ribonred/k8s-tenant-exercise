@@ -22,6 +22,18 @@ spec:
                 type: string
               dbVolumeSize:
                 type: string
+              tenantNamespace:
+                type: string
+              ConfigMapReference:
+                type: object
+                required: [ "refName" ] # Ensure refName is always present
+                properties:
+                  refName:
+                    type: string
+                  values:
+                    type: object
+                    additionalProperties:
+                      type: string
   scope: Namespaced
   names:
     plural: tenants

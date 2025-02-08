@@ -30,6 +30,11 @@ spec:
               value: "{{ .Values.db.password }}"
             - name: POSTGRES_NAME
               value: "{{ .Values.db.database }}"
+            {{- if .Values.backendApp.configMapReference }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.backendApp.configMapReference.refName }}
+            {{- end }}
           ports:
             - containerPort: {{ .Values.backendApp.port }}
       

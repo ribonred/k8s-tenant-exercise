@@ -1,7 +1,7 @@
 apiVersion: v2
 name: tenant-stack
 description: A chart that deploys a tenant stack and PostgreSQL from Bitnami.
-version: 0.1.5
+version: 0.1.6
 appVersion: "1.0"
 dependencies:
 - name: postgresql
