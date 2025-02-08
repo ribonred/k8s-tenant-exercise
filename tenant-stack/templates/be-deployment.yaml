@@ -14,15 +14,14 @@ spec:
       labels:
         app: {{ .Release.Name }}-app
     spec:
-      initContainers:
-        - name: init-wait-for-postgres
-          image: busybox
+      - name: init-wait-for-postgres
+          image: postgres:13  # Use PostgreSQL image to get `pg_isready`
           command:
             - /bin/sh
             - "-c"
             - |
               echo "Waiting for PostgreSQL to be ready at $POSTGRES_HOST:$POSTGRES_PORT..."
-              until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
+              until PGPASSWORD="$POSTGRES_PASSWORD" pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER"; do
                 echo "PostgreSQL is not ready, waiting..."
                 sleep 2
               done
@@ -32,6 +31,11 @@ spec:
               value: "{{ .Release.Name }}-postgresql-hl"
             - name: POSTGRES_PORT
               value: "5432"
+            - name: POSTGRES_USER
+              value: "{{ .Values.db.username }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.db.password }}"
+
       containers:
         - name: backend-app
           command: ["./script/entrypoint.sh"]
