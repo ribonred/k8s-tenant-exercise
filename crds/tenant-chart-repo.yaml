@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://github.com/stefanprodan/podinfo
+  url: https://github.com/ribonred/k8s-tenant-exercise
   ref:
     branch: master
   ignore: |
