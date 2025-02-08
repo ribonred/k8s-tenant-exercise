@@ -107,7 +107,7 @@ def create_helmrelease_cr(tenant: Tenant):
             "chart": {
                 "spec": {
                     "chart": "tenant-stack",  # Name of your Helm chart
-                    "version": "0.1.4",
+                    "version": "0.1.5",
                     "sourceRef": {
                         "kind": "HelmRepository",  # This must match your repository CRD kind
                         "name": "tenant-charts",  # Name of the HelmRepository containing your chart
@@ -147,7 +147,7 @@ def create_helmrelease_cr(tenant: Tenant):
 
 tenant = Tenant(
     tenantName="mytenant",
-    domain="mytenant.example.com",
+    domain="mytenant.localhost",
     dbVolumeSize="1Gi",
     namespace="mytenant",
 )

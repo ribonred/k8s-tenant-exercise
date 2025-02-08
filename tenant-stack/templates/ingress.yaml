@@ -5,7 +5,7 @@ metadata:
 spec:
   ingressClassName: "nginx"  # Adjust if you use another ingress controller
   rules:
-    - host: "{{ .Values.domain }}"
+    - host: "{{ .Values.tenantIngress.domain }}"
       http:
         paths:
           - path: /
