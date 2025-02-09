@@ -20,7 +20,3 @@ class Tenant(models.Model):
     @property
     def domain(self):
         return f"{self.subdomain_prefix}.localhost"
-    
-    @property
-    def http_url(self):
-        return f"http://{self.domain}"

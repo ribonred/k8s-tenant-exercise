@@ -1,8 +1,12 @@
 # myapp/k8s.py
-from kubernetes import client, config
 import logging
 from pydantic import BaseModel, Field, AliasChoices
 import json
+from shared.k8sclient import Client
+from kubernetes import client as kube
+
+logger = logging.getLogger(__name__)
+client: Client = Client()
 
 
 class Tenant(BaseModel):
@@ -65,40 +69,29 @@ class TenantDbSetup(BaseModel):
     postgresql: PostgresConfig
 
 
-logger = logging.getLogger(__name__)
-
-
-def create_helmrelease_cr(tenant: Tenant):
+def create_tenant(tenant: Tenant):
     """
     Create a HelmRelease custom resource for the given tenant.
     This CR will instruct the Helm Operator to deploy the tenant stack.
     """
-    # Load Kubernetes configuration.
-    try:
-        config.load_incluster_config()
-    except Exception:
-        config.load_kube_config()
 
-    # Create a custom objects API client.
-    custom_api = client.CustomObjectsApi()
-    k8s_client = client.CoreV1Api()
-    print("Creating namespace for tenant")
-    k8s_client.create_namespace(
-        body=client.V1Namespace(metadata=client.V1ObjectMeta(name=tenant.namespace))
+    logger.info("Creating namespace for tenant")
+    client.k8s.create_namespace(
+        body=kube.V1Namespace(metadata=kube.V1ObjectMeta(name=tenant.namespace))
     )
-    k8s_client.create_namespaced_persistent_volume_claim(
+    client.k8s.create_namespaced_persistent_volume_claim(
         namespace=tenant.namespace,
-        body=client.V1PersistentVolumeClaim(
-            metadata=client.V1ObjectMeta(name="pg-storage"),
-            spec=client.V1PersistentVolumeClaimSpec(
+        body=kube.V1PersistentVolumeClaim(
+            metadata=kube.V1ObjectMeta(name="pg-storage"),
+            spec=kube.V1PersistentVolumeClaimSpec(
                 access_modes=["ReadWriteOnce"],
-                resources=client.V1ResourceRequirements(
+                resources=kube.V1ResourceRequirements(
                     requests={"storage": tenant.dbVolumeSize}
                 ),
             ),
         ),
     )
-    print(f"Namespace {tenant.namespace} created")
+    logger.info(f"Namespace {tenant.namespace} created")
 
     # These values should match your Helm Operator's CRD.
     group = "helm.toolkit.fluxcd.io"  # adjust if your operator uses a different group
@@ -137,7 +130,7 @@ def create_helmrelease_cr(tenant: Tenant):
             "values": {
                 **tenant_db.model_dump(),
                 "backendApp": {
-                    "image": "car-finance:latest",
+                    "image": "edu-app:latest",
                     "replicaCount": 1,
                     "port": 8000,
                 },
@@ -149,10 +142,10 @@ def create_helmrelease_cr(tenant: Tenant):
     }
     if tenant.get_config_ref():
         helmrelease_cr["spec"]["values"]["backendApp"].update(tenant.get_config_ref())
-    print(json.dumps(helmrelease_cr, indent=2))
+    logger.info(json.dumps(helmrelease_cr, indent=2))
 
     try:
-        custom_api.create_namespaced_custom_object(
+        client.crd.create_namespaced_custom_object(
             group=group,
             version=version,
             namespace=tenant.namespace,
@@ -164,38 +157,21 @@ def create_helmrelease_cr(tenant: Tenant):
         logger.error(
             "Error creating HelmRelease CR for tenant '%s': %s", tenant.domain, e
         )
-        k8s_client.delete_namespace(name=tenant.namespace)
+        client.k8s.delete_namespace(name=tenant.namespace)
 
 
 def delete_tenant_ns(tenant: Tenant):
     """
     Delete the namespace for the given tenant.
     """
-    # Load Kubernetes configuration.
     try:
-        config.load_incluster_config()
-    except Exception:
-        config.load_kube_config()
-
-    # Create a custom objects API client.
-    k8s_client = client.CoreV1Api()
-    try:
-        k8s_client.delete_namespace(name=tenant.namespace)
+        client.k8s.delete_namespace(name=tenant.namespace)
         logger.info("Namespace '%s' deleted", tenant.namespace)
-    except client.rest.ApiException as e:
+    except kube.rest.ApiException as e:
         logger.error("Error deleting namespace '%s': %s", tenant.namespace, e)
 
 
 def update_tenant_release(tenant: Tenant):
-    # Load Kubernetes configuration.
-    try:
-        config.load_incluster_config()
-    except Exception:
-        config.load_kube_config()
-
-    # Create a custom objects API client.
-    custom_api = client.CustomObjectsApi()
-
     # These values should match your Helm Operator's CRD.
     group = "helm.toolkit.fluxcd.io"  # adjust if your operator uses a different group
     version = "v2"
@@ -213,7 +189,7 @@ def update_tenant_release(tenant: Tenant):
     values = {
         **tenant_db.model_dump(),
         "backendApp": {
-            "image": "car-finance:latest",
+            "image": "edu-app:latest",
             "replicaCount": 1,
             "port": 8000,
         },
@@ -225,7 +201,7 @@ def update_tenant_release(tenant: Tenant):
         values["backendApp"].update(tenant.get_config_ref())
     try:
         # Fetch the existing HelmRelease
-        existing_helmrelease = custom_api.get_namespaced_custom_object(
+        existing_helmrelease = client.crd.get_namespaced_custom_object(
             group=group,
             version=version,
             namespace=tenant.namespace,
@@ -237,7 +213,7 @@ def update_tenant_release(tenant: Tenant):
         existing_helmrelease["spec"]["values"] = values
 
         # Update the HelmRelease with the new values
-        updated_helmrelease = custom_api.replace_namespaced_custom_object(
+        updated_helmrelease = client.crd.replace_namespaced_custom_object(
             group=group,
             version=version,
             namespace=tenant.namespace,
@@ -246,10 +222,8 @@ def update_tenant_release(tenant: Tenant):
             body=existing_helmrelease,
         )
 
-        logger.info("HelmRelease CR updated for tenant '%s'", tenant.domain)
+        logger.info(f"HelmRelease CR updated for tenant {tenant.domain}")
         return updated_helmrelease
 
     except client.rest.ApiException as e:
-        logger.error(
-            "Error updating HelmRelease CR for tenant '%s': %s", tenant.domain, e
-        )
+        logger.error(f"Error updating HelmRelease CR for tenant {tenant.domain}: {e}")

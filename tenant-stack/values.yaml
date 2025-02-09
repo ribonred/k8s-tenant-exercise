@@ -7,7 +7,7 @@ tenantIngress:
   domain: "defaulttenant.com"
 
 backendApp:
-  image: car-finance:latest
+  image: edu-app:latest
   replicaCount: 1
   port: 8000
   configMapReference:
