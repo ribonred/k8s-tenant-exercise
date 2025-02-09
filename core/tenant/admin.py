@@ -5,6 +5,7 @@ from kubernetes import client, config
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
 import logging
+from django.utils.html import format_html
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class TenantAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "resource_status",
+        "http_url",
         "subdomain_prefix",
         "db_volume_size",
         "tenant_namespace",
@@ -27,6 +29,9 @@ class TenantAdmin(admin.ModelAdmin):
     search_fields = ("name", "subdomain_prefix", "tenant_namespace")
     list_filter = ("created_at", "updated_at")
     actions = ["create_resource", "delete_resource", "update_resource"]
+
+    def http_url(self, obj):
+        return format_html('<a href="http://{}" target="_blank">{}</a>', obj.domain, obj.domain)
 
     def get_k8s_config(self):
         try:
