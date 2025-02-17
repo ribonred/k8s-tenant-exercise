@@ -24,6 +24,8 @@ spec:
                 type: string
               tenantNamespace:
                 type: string
+              backendImage:
+                type: string
               configMapReference:
                 type: object
                 required: [ "refName" ] # Ensure refName is always present

@@ -22,6 +22,7 @@ class TenantAdmin(admin.ModelAdmin):
         "subdomain_prefix",
         "db_volume_size",
         "tenant_namespace",
+        "backend_image",
         "config_map_reference",
         "created_at",
         "updated_at",

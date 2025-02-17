@@ -8,6 +8,7 @@ spec:
   domain: sdn-banjararum.localhost
   dbVolumeSize: 2Gi
   tenantNamespace: sdn-banjararum
+  backendImage: edu-app:latest
   configMapReference:
     refName: sdn-banjararum-config
     values:

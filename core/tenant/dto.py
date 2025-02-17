@@ -11,6 +11,7 @@ class TenantSpec(BaseModel):
     dbVolumeSize: str
     tenantNamespace: str
     configMapReference: dict
+    backendImage: str
 
 class TenantCrd(BaseModel):
     apiVersion: str = "saas.com/v1"
@@ -27,6 +28,7 @@ class TenantCrd(BaseModel):
                 domain=tenant.domain,
                 dbVolumeSize=tenant.db_volume_size,
                 tenantNamespace=tenant.tenant_namespace,
-                configMapReference=tenant.config_map_reference
+                configMapReference=tenant.config_map_reference,
+                backendImage=tenant.backend_image,
             ),
         )

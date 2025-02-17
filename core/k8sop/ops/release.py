@@ -22,6 +22,7 @@ class Tenant(BaseModel):
         default=None,
     )
     domain: str
+    backendImage: str
 
     def get_config_ref(self) -> dict:
         if self.config is None:
@@ -130,7 +131,7 @@ def create_tenant(tenant: Tenant):
             "values": {
                 **tenant_db.model_dump(),
                 "backendApp": {
-                    "image": "edu-app:latest",
+                    "image": tenant.backendImage,
                     "replicaCount": 1,
                     "port": 8000,
                 },
@@ -189,7 +190,7 @@ def update_tenant_release(tenant: Tenant):
     values = {
         **tenant_db.model_dump(),
         "backendApp": {
-            "image": "edu-app:latest",
+            "image": tenant.backendImage,
             "replicaCount": 1,
             "port": 8000,
         },

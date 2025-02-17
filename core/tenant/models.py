@@ -13,6 +13,7 @@ class Tenant(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     resource_status = models.CharField(max_length=20, choices=ResourceStatus.choices, default=ResourceStatus.NOT_CREATED)
+    backend_image = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.name
