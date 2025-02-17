@@ -40,7 +40,7 @@ spec:
               value: "{{ .Values.db.password }}"
       containers:
         - name: backend-app
-          command: ["./script/entrypoint.sh"]
+          command: ["sh", "./script/entrypoint.sh"]
           image: {{ .Values.backendApp.image }}
           imagePullPolicy: Never
           env:

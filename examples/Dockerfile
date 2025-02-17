@@ -18,6 +18,7 @@ WORKDIR /app
 COPY --from=build /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 RUN echo "source /app/.venv/bin/activate" >> /etc/profile.d/venv.sh
+RUN sed -i 's/\r//g' /app/script/entrypoint.sh
 # Copy supervisord config file
 RUN cp /app/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 # RUN unlink /var/run/supervisor.sock

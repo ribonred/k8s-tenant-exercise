@@ -1,9 +1,11 @@
 # myapp/k8s.py
-import logging
-from pydantic import BaseModel, Field, AliasChoices
 import json
-from shared.k8sclient import Client
+import logging
+
 from kubernetes import client as kube
+from pydantic import AliasChoices, BaseModel, Field
+
+from shared.k8sclient import Client
 
 logger = logging.getLogger(__name__)
 client: Client = Client()
@@ -120,7 +122,7 @@ def create_tenant(tenant: Tenant):
             "chart": {
                 "spec": {
                     "chart": "tenant-stack",  # Name of your Helm chart
-                    "version": "1.0.1",
+                    "version": "1.0.2",
                     "sourceRef": {
                         "kind": "HelmRepository",  # This must match your repository CRD kind
                         "name": "tenant-charts",  # Name of the HelmRepository containing your chart
